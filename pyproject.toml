@@ -1,11 +1,25 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
-name = "usbcameracontroller"
+name = "usb-camera-adapter"
 version = "0.1.0"
-description = "Add your description here"
-readme = "README.md"
-requires-python = ">=3.13"
+requires-python = "~=3.11.0"
 dependencies = [
     "loguru>=0.7.3",
-    "numpy>=2.5.1",
+    "numpy>=2.4.6",
     "opencv-python>=5.0.0.93",
+    "adapter-core",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/camera_adapter", "src/camera_controller", "src/interfaces"]
+
+[tool.uv.sources]
+adapter-core = { workspace = true }
