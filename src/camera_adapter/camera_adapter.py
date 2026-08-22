@@ -18,25 +18,21 @@ class CameraAdapter(BaseAdapter):
         self._threshold = 70
     
     def setup(self) -> bool:
-        """カメラの初期化と準備状態の確認"""
+        """カメラの初期化（接続）のみを行う。
+
+        LEDの点灯確認（check_device_status）はここでは呼ばない。以前はここでも
+        呼んでいたため、Orchestrator.execute()内の呼び出しと合わせて1回のexecute()で
+        2回撮影してしまっていた（01_docs/decisions/12_essential_gaps_found.md参照）。
+        LED確認が必要な呼び出し元は、setup後に自分でcheck_device_status()を呼ぶこと。
+        """
         logger.info("UsbCameraAdapter: セットアップ開始")
         if not self.open():
             logger.error("UsbCameraAdapter: カメラデバイスのオープンに失敗しました")
             self._is_ready = False
             return False
-        try:
-            status = self.check_device_status()
-            if status == "READY":
-                self._is_ready = True
-                logger.info("UsbCameraAdapter: セットアップ完了(READY)")
-                return True
-            else:
-                logger.error(f"UsbCameraAdapter: デバイス準備失敗({status})")
-                return False
-        except Exception as e:
-            logger.exception(f"UsbCameraAdapter: setup エラー: {e}")
-            return False
-        pass
+        self._is_ready = True
+        logger.info("UsbCameraAdapter: セットアップ完了(カメラオープン成功)")
+        return True
 
     async def execute_step(self, action: str, params: Dict[str, Any]) -> Dict[str, Any]:
         """アクション名に応じた処理の実行
