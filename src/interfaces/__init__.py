@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+from pathlib import Path
+
 import numpy as np
 
 
@@ -20,7 +22,8 @@ class CameraControllerInterface(ABC):
         pass
 
     @abstractmethod
-    def save_capture(self, frame) -> None:
+    def save_capture(self, frame) -> Path | None:
+        """frameを画像ファイルとして保存し、保存先パスを返す。保存しなかった場合はNone。"""
         pass
 
     @abstractmethod

@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from pathlib import Path
 
 import cv2
@@ -58,25 +59,33 @@ class CameraController(CameraControllerInterface):
         else:
             return None
 
-    def save_capture(self, frame) -> None:
+    def save_capture(self, frame) -> Path | None:
+        """撮影したframeを画像ファイルとして保存する。実行ごとにタイムスタンプ付きファイル名で残す
+        （固定ファイル名だと毎回上書きされ、履歴が残らないため。01_docs/decisions/13参照）。"""
         if frame is None:
             logger.warning("save_capture: frameがNoneのため保存をスキップします。")
+            return None
         img_path = self._make_img_path(img_name="capture")
         cv2.imwrite(str(img_path), frame)
+        return img_path
 
-    def save_roi_capture(self, frame, roi: tuple[int, int, int, int]) -> None:
+    def save_roi_capture(self, frame, roi: tuple[int, int, int, int]) -> Path | None:
         if frame is None or roi is None:
             logger.warning("save_roi_capture: frameまたはroiがNoneのためスキップします。")
+            return None
         img_path = self._make_img_path(img_name="roi_capture")
         x, y, w, h = roi
         roi_frame = frame[y: y+h, x: x+w]
         cv2.imwrite(str(img_path), roi_frame)
-    
+        return img_path
+
     def _make_img_path(self, img_name) -> Path:
         # 実行時のカレントディレクトリに依存しないよう、このファイル基準（usb_camera_adapter/img）に固定する
         img_dir = Path(__file__).resolve().parent.parent.parent / "img"
         os.makedirs(img_dir, exist_ok=True)
-        img_path = img_dir / f"{img_name}.png"
+        # ミリ秒まで含め、同一実行内での複数回撮影でもファイル名が衝突しないようにする
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]
+        img_path = img_dir / f"{img_name}_{timestamp}.png"
         return img_path
 
     def is_led_on(self, roi: tuple[int, int, int, int], threshold: int) -> bool:

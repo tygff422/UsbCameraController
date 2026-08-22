@@ -49,9 +49,15 @@ class CameraAdapter(BaseAdapter):
             if resolution is not None:
                 await asyncio.to_thread(self.camera_controller.set_resolution, resolution)
             frame = await asyncio.to_thread(self.camera_controller.capture)
+
+            saved_path = None
+            if frame is not None:
+                saved_path = await asyncio.to_thread(self.camera_controller.save_capture, frame)
+
             return {
                 "status": "SUCCESS" if frame is not None else "FAILED",
-                "frame": frame
+                "frame": frame,
+                "saved_path": str(saved_path) if saved_path is not None else None,
             }
         else:
             raise ValueError(f"未対応のアクションです: {action}")

@@ -1,3 +1,4 @@
+from pathlib import Path
 from unittest.mock import MagicMock, create_autospec
 from camera_controller.camera_controller import CameraController
 from interfaces import CameraControllerInterface
@@ -28,8 +29,9 @@ class CameraMockController(CameraControllerInterface):
         dummy_frame = np.zeros((480, 640, 3), dtype=np.uint8)
         return dummy_frame
 
-    def save_capture(self, frame) -> None:
-        logger.debug("save_captureが呼び出されました。(ファイル保存はスキップ)")
+    def save_capture(self, frame) -> Path | None:
+        logger.debug("save_captureが呼び出されました。(実機を持たないFakeのためファイル保存はスキップ)")
+        return None
 
     def set_led_status(self, status=True) -> None:
         self._led_status = status
