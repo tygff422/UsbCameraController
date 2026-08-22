@@ -13,7 +13,8 @@ class CameraAdapter(BaseAdapter):
             self.camera_controller = camera_controller
         else:
             device_id = (config or {}).get("device_id", 0)
-            self.camera_controller = CameraController(device_id=device_id)
+            img_dir = (config or {}).get("img_dir")
+            self.camera_controller = CameraController(device_id=device_id, img_dir=img_dir)
         self._roi = (100, 150, 50, 50)
         self._threshold = 70
     

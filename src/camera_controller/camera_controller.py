@@ -10,8 +10,12 @@ from interfaces import CameraControllerInterface
 
 
 class CameraController(CameraControllerInterface):
-    def __init__(self, device_id: int=0):
+    def __init__(self, device_id: int = 0, img_dir: str | Path | None = None):
+        """img_dir: 撮影画像の保存先を上書きしたい場合に指定する。
+        未指定なら従来通り自パッケージ内（usb_camera_adapter/img）に保存する。
+        """
         self.device_id = device_id
+        self._img_dir = Path(img_dir) if img_dir is not None else None
         self._cap: cv2.VideoCapture | None = None
 
     def open(self) -> bool:
@@ -80,8 +84,9 @@ class CameraController(CameraControllerInterface):
         return img_path
 
     def _make_img_path(self, img_name) -> Path:
-        # 実行時のカレントディレクトリに依存しないよう、このファイル基準（usb_camera_adapter/img）に固定する
-        img_dir = Path(__file__).resolve().parent.parent.parent / "img"
+        # img_dir未指定なら、実行時のカレントディレクトリに依存しないよう
+        # このファイル基準（usb_camera_adapter/img）に固定する（後方互換のデフォルト）
+        img_dir = self._img_dir or (Path(__file__).resolve().parent.parent.parent / "img")
         os.makedirs(img_dir, exist_ok=True)
         # ミリ秒まで含め、同一実行内での複数回撮影でもファイル名が衝突しないようにする
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]
