@@ -41,12 +41,15 @@ CameraAdapter(config: dict | None = None, camera_controller=None)
 - `setup()`：`camera_controller.open()`のみ（接続確認）。LED確認はここでは行わない
   （以前は行っていたが、呼び出し元と二重に撮影してしまうバグがあったため撤去。
   詳細は[decisions/12](../../01_docs/decisions/12_essential_gaps_found.md)）
-- `execute_step(action, params)`：`async def`。対応は`"capture"`のみ
-  - `params.resolution`があれば解像度設定
-  - 撮影後、`save_capture()`を自動で呼ぶ。戻り値の`saved_path`に保存先が入る
+- `execute_step(action, params)`：`async def`。対応は`"capture"`／`"check_status"`
+  - `"capture"`：`params.resolution`があれば解像度設定。撮影後、`save_capture()`を自動で呼ぶ。戻り値の`saved_path`に保存先が入る
+  - `"check_status"`：`check_device_status()`（LED点灯判定）を呼ぶ。戻り値の`status`に`"READY"`/`"NOT_READY"`が入る
+    （以前はデモ用`Orchestrator`経由でしか呼べなかった機能。詳細は[decisions/19](../../01_docs/decisions/19_orchestrator_demo_class_removal.md)）
   - OpenCVのブロッキング呼び出しは`asyncio.to_thread`で分離（詳細は[decisions/09](../../01_docs/decisions/09_async_execute_step.md)）
 - `teardown()`：`camera_controller.release()`
 - `config`で受け取るキー：`device_id`（デフォルト0）、`img_dir`（省略可）
+- `open()`/`release()`/`is_opened()`/`capture()`/`save_capture()`/`is_led_on()`等の直接メソッドは持たない。
+  正式な入口は`execute_step()`のみ（[known_issues.md No.10](../../01_docs/known_issues.md)対応）
 
 `GenericOrchestrator`から`workflow.yaml`経由で動的ロードされる想定（詳細は[orchestrator/README.md](../../orchestrator/README.md)）。
 
@@ -56,7 +59,7 @@ CameraAdapter(config: dict | None = None, camera_controller=None)
 pytest adapters/usb_camera_adapter/tests -m "not hardware"
 ```
 
-- `test_camera_adapter.py`：`CameraMockController`（Fake、`tests/test_support/`）を使い実機なしで検証
+- `test_camera_adapter.py`：`CameraMockController`（Fake、`tests/test_support/`）を使い、`execute_step()`経由で実機なしで検証
 - `test_camera_controller.py`：pytestのテストではなく、`main()`ガード付きの手動実行専用スクリプト
   （実機カメラで`open→capture→save→is_led_on→release`を一通り試す用）
 

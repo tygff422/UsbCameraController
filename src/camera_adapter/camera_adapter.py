@@ -2,7 +2,6 @@ import asyncio
 from typing import Any, Dict
 
 from loguru import logger
-import numpy as np
 from camera_controller.camera_controller import CameraController
 from adapter_core.baseadapter import BaseAdapter
 
@@ -27,7 +26,7 @@ class CameraAdapter(BaseAdapter):
         LED確認が必要な呼び出し元は、setup後に自分でcheck_device_status()を呼ぶこと。
         """
         logger.info("UsbCameraAdapter: セットアップ開始")
-        if not self.open():
+        if not self.camera_controller.open():
             logger.error("UsbCameraAdapter: カメラデバイスのオープンに失敗しました")
             self._is_ready = False
             return False
@@ -60,6 +59,12 @@ class CameraAdapter(BaseAdapter):
                 "frame": frame,
                 "saved_path": str(saved_path) if saved_path is not None else None,
             }
+        elif action == "check_status":
+            # LEDのROI画像判定によるデバイス準備確認（01_docs/decisions/19参照）。
+            # 以前はデモ用Orchestrator経由でしか呼べなかった機能を、GenericOrchestrator
+            # からも使えるように、正規のactionとしてここに配線する。
+            led_status = await asyncio.to_thread(self.check_device_status)
+            return {"status": led_status}
         else:
             raise ValueError(f"未対応のアクションです: {action}")
 
@@ -75,23 +80,6 @@ class CameraAdapter(BaseAdapter):
             logger.exception(f"UsbCameraAdapter: teardown エラー: {e}")
 
     def check_device_status(self) -> str:
+        """LEDのROI画像判定によるデバイス準備確認。execute_step("check_status")から使う内部実装。"""
         is_on = self.camera_controller.is_led_on(self._roi, self._threshold)
         return "READY" if is_on else "NOT_READY"
-
-    def open(self) -> bool:
-        return self.camera_controller.open()
-
-    def release(self) -> None:
-        self.camera_controller.release()
-
-    def is_opened(self) -> bool:
-        return self.camera_controller.is_opened()
-
-    def capture(self) -> np.ndarray | None:
-        return self.camera_controller.capture()
-
-    def save_capture(self, frame) -> None:
-        self.camera_controller.save_capture(frame=frame)
-    
-    def is_led_on(self, roi: tuple[int, int, int, int], threshold) -> bool:
-        return self.camera_controller.is_led_on(roi=roi, threshold=threshold)
