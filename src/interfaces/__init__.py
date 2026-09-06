@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 
 
-class CameraControllerInterface(ABC):
+class UsbCameraControllerInterface(ABC):
     @abstractmethod
     def open(self) -> bool:
         pass

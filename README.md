@@ -13,15 +13,17 @@ USBカメラをOpenCV経由で操作する、`scenario_test`ワークスペー�
 
 ```text
 src/
-  camera_controller/  ← 実際にOpenCVを叩く層（open/capture/release/save_capture/is_led_on等）
-  camera_adapter/     ← BaseAdapter（adapter-core）実装。Orchestratorとの橋渡し
-  interfaces/         ← CameraControllerInterface（Controllerの契約）
+  usb_camera_controller/  ← 実際にOpenCVを叩く層（open/capture/release/save_capture/is_led_on等）
+  usb_camera_adapter/     ← BaseAdapter（adapter-core）実装。Orchestratorとの橋渡し
+  interfaces/              ← UsbCameraControllerInterface（Controllerの契約）
 ```
 
-### `CameraController`
+（2026-09-05、`camera_adapter`/`camera_controller`から改名。詳細は[decisions/20](../../01_docs/decisions/20_usb_camera_package_rename.md)）
+
+### `UsbCameraController`
 
 ```python
-CameraController(device_id: int = 0, img_dir: str | Path | None = None)
+UsbCameraController(device_id: int = 0, img_dir: str | Path | None = None)
 ```
 
 - `open()` / `release()` / `is_opened()`：接続管理
@@ -32,10 +34,10 @@ CameraController(device_id: int = 0, img_dir: str | Path | None = None)
     （`scenario_test`側では`testexecutor/img/`に向けている。詳細は[decisions/14](../../01_docs/decisions/14_testexecutor_folder.md)）
 - `is_led_on(roi, threshold)`：指定ROIの平均輝度がしきい値を超えるか判定
 
-### `CameraAdapter`（`BaseAdapter`実装）
+### `UsbCameraAdapter`（`BaseAdapter`実装）
 
 ```python
-CameraAdapter(config: dict | None = None, camera_controller=None)
+UsbCameraAdapter(config: dict | None = None, camera_controller=None)
 ```
 
 - `setup()`：`camera_controller.open()`のみ（接続確認）。LED確認はここでは行わない
@@ -59,8 +61,9 @@ CameraAdapter(config: dict | None = None, camera_controller=None)
 pytest adapters/usb_camera_adapter/tests -m "not hardware"
 ```
 
-- `test_camera_adapter.py`：`CameraMockController`（Fake、`tests/test_support/`）を使い、`execute_step()`経由で実機なしで検証
-- `test_camera_controller.py`：pytestのテストではなく、`main()`ガード付きの手動実行専用スクリプト
+- `test_usb_camera_adapter.py`：`UsbCameraMockController`（Fake、`tests/test_support/`）を使い、`execute_step()`経由で実機なしで検証
+- `test_usb_camera_controller_logic.py`：`_make_img_path`等、実機不要な純粋ロジック部分の単体テスト（[known_issues.md No.2](../../01_docs/known_issues.md)対応）
+- `test_usb_camera_controller.py`：pytestのテストではなく、`main()`ガード付きの手動実行専用スクリプト
   （実機カメラで`open→capture→save→is_led_on→release`を一通り試す用）
 
 実機カメラでの動作確認は、`scenario_test`側の`testexecutor/run_scenario.py`、または
@@ -68,4 +71,4 @@ pytest adapters/usb_camera_adapter/tests -m "not hardware"
 
 ## 関連ドキュメント
 
-このリポジトリ自体には設計判断の記録を置いていない。`scenario_test`側の`01_docs/decisions/`に、このパッケージに関する決定も含めて記録している（[03](../../01_docs/decisions/03_package_settings_adapter_orchestrator.md)・[04](../../01_docs/decisions/04_urgent_fix_camera_pipeline.md)・[06](../../01_docs/decisions/06_workflow_yaml_usage.md)・[09](../../01_docs/decisions/09_async_execute_step.md)・[12](../../01_docs/decisions/12_essential_gaps_found.md)・[13](../../01_docs/decisions/13_log_and_artifact_storage_gap.md)・[14](../../01_docs/decisions/14_testexecutor_folder.md)）。
+このリポジトリ自体には設計判断の記録を置いていない。`scenario_test`側の`01_docs/decisions/`に、このパッケージに関する決定も含めて記録している（[03](../../01_docs/decisions/03_package_settings_adapter_orchestrator.md)・[04](../../01_docs/decisions/04_urgent_fix_camera_pipeline.md)・[06](../../01_docs/decisions/06_workflow_yaml_usage.md)・[09](../../01_docs/decisions/09_async_execute_step.md)・[12](../../01_docs/decisions/12_essential_gaps_found.md)・[13](../../01_docs/decisions/13_log_and_artifact_storage_gap.md)・[14](../../01_docs/decisions/14_testexecutor_folder.md)・[20](../../01_docs/decisions/20_usb_camera_package_rename.md)）。

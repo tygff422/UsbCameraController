@@ -2,21 +2,21 @@ import asyncio
 from typing import Any, Dict
 
 from loguru import logger
-from camera_controller.camera_controller import CameraController
+from usb_camera_controller.usb_camera_controller import UsbCameraController
 from adapter_core.baseadapter import BaseAdapter
 
 
-class CameraAdapter(BaseAdapter):
+class UsbCameraAdapter(BaseAdapter):
     def __init__(self, config: Dict[str, Any] | None = None, camera_controller=None):
         if camera_controller is not None:
             self.camera_controller = camera_controller
         else:
             device_id = (config or {}).get("device_id", 0)
             img_dir = (config or {}).get("img_dir")
-            self.camera_controller = CameraController(device_id=device_id, img_dir=img_dir)
+            self.camera_controller = UsbCameraController(device_id=device_id, img_dir=img_dir)
         self._roi = (100, 150, 50, 50)
         self._threshold = 70
-    
+
     def setup(self) -> bool:
         """カメラの初期化（接続）のみを行う。
 

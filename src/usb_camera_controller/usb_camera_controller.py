@@ -6,10 +6,10 @@ import cv2
 import numpy as np
 from loguru import logger
 
-from interfaces import CameraControllerInterface
+from interfaces import UsbCameraControllerInterface
 
 
-class CameraController(CameraControllerInterface):
+class UsbCameraController(UsbCameraControllerInterface):
     def __init__(self, device_id: int = 0, img_dir: str | Path | None = None):
         """img_dir: 撮影画像の保存先を上書きしたい場合に指定する。
         未指定なら従来通り自パッケージ内（usb_camera_adapter/img）に保存する。
@@ -99,7 +99,7 @@ class CameraController(CameraControllerInterface):
         if frame is None:
             return False
         x, y, w, h = roi
-        roi_frame = frame[y: y+h, x: x+w] 
+        roi_frame = frame[y: y+h, x: x+w]
         gray_roi = cv2.cvtColor(roi_frame, cv2.COLOR_BGR2GRAY)
         mean_value = gray_roi.mean()
         if mean_value > threshold:

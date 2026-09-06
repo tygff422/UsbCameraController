@@ -1,12 +1,10 @@
 from pathlib import Path
-from unittest.mock import MagicMock, create_autospec
-from camera_controller.camera_controller import CameraController
-from interfaces import CameraControllerInterface
+from interfaces import UsbCameraControllerInterface
 from loguru import logger
 import numpy as np
 
 
-class CameraMockController(CameraControllerInterface):
+class UsbCameraMockController(UsbCameraControllerInterface):
     def __init__(self, device_id: int = 0, auto_open: bool = False, auto_led: bool = False):
         self.device_id = device_id
         self._is_opened: bool = auto_open

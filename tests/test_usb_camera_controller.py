@@ -1,10 +1,10 @@
-from camera_controller.camera_controller import CameraController
+from usb_camera_controller.usb_camera_controller import UsbCameraController
 
 
 def main():
     """pytest収集時に副作用が走らないよう、手動実行専用にガードした動作確認スクリプト"""
     # インスタンス化
-    camera = CameraController()
+    camera = UsbCameraController()
     # カメラOpen
     camera.open()
     # 1フレーム撮影

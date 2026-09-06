@@ -19,7 +19,7 @@ dev = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/camera_adapter", "src/camera_controller", "src/interfaces"]
+packages = ["src/usb_camera_adapter", "src/usb_camera_controller", "src/interfaces"]
 
 [tool.uv.sources]
 adapter-core = { workspace = true }
